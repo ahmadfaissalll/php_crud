@@ -80,146 +80,113 @@
 
       require_once "conn.php";
 
-      // if (isset($_GET["submit"])) {
-      //   echo "<pre>";
-      //   var_dump($_GET["search"]);
-      //   echo "</pre>";
-      // }
-      // exit;
 
-
-      // DISPLAYING PRODUCT
-
-      if ((!isset($_GET["submit"]) && !isset($_GET["search"])) || isset($_GET["refresh"])) {
+      // DISPLAYING PRODUCT KETIKA HALAMAN PERTAMA KALI DILOAD DAN KETIKA REFRESH BUTTON DIPENCET
+      if ((!isset($_GET["submit"]) && !isset($_GET["search"])) || isset($_GET["refresh"])):
 
 
         $sql = "select id, title, description, price, image, DATE_FORMAT(create_date, '%d/%m/%Y %H:%i:%S') from products order by create_date desc";
 
-        $result = $conn->query($sql);
+      endif;
 
-        $no = 0;
+      // DISPLAYING PRODUCT WHEN GLOBAL VAR 'search' EMPTY BUT GLOBAL VAR 'submit' NOT EMPTY
+      if (isset($_GET["search"]) && $_GET["search"] !== "" && isset($_GET["submit"])):
 
-        while ($products = $result->fetch_array(MYSQLI_ASSOC)) {
 
-          $no++;
+        $sql = "select id, title, description, price, image, DATE_FORMAT(create_date, '%d/%m/%Y %H:%i:%S') from products order by create_date desc";
 
-          echo "<tr>";
-          echo "<th class='row'>{$no}</th>";
-          echo "<td>{$products["title"]}</td>";
-          echo "<td class='description'>{$products["description"]}</td>";
-
-          if ($products["image"] !== "") {
-            echo "<td><img src='{$products["image"]}' title='{$products["title"]}' width='100px'></td>";
-          } else {
-            echo "<td style='width='100px'; height='100px''></td>";
-          }
-
-          echo "<td>\${$products["price"]}</td>";
-          echo "<td>{$products["DATE_FORMAT(create_date, '%d/%m/%Y %H:%i:%S')"]}</td>";
-          echo "<td>";
-          echo "<a href='update.php?id={$products["id"]}' class='btn btn-outline-primary'>Edit</a>";
-          echo "<form action='delete.php' method='post' style='display: inline-block;'>";
-            echo "<input type='hidden' name='id' value='{$products["id"]}'>";
-            echo "<input type='hidden' name='image_path' value='{$products["image"]}'>";
-            echo "<input type='submit' class='btn btn-outline-danger' style='margin-left: 5px;' value='Delete'>";
-          echo "</form>";
-          echo "</td>";
-          echo "</tr>";
-        }
-
-        // MENAMPILKAN JUMLAH PRODUCT YANG DITAMPILKAN
-        echo "<p>";
-        echo "$no/$no products ditampikan";
-        echo "</p>";
-
-        
-      }
-
+      endif;
 
 
       // SEARCH for PRODUCT
-
-      // HARD LOGIC
-      // if (isset($_GET["submit"]) && ($_GET["search"] !== "" || ($_GET["search"] === "" && !isset($_GET["submit"])))) {
-
-      // SIMPLE LOGIC
-      // isset($_GET["submit"]) && $_GET["search"] !== ""
-
-      if (isset($_GET["submit"]) && $_GET["search"] !== "") {
+      if (isset($_GET["submit"]) && $_GET["search"] !== ""):
 
 
         $searchQuery = $_GET["search"];
 
         $sql = "select id, title, description, price, image, DATE_FORMAT(create_date, '%d/%m/%Y %H:%i:%S') from products where title like '$searchQuery%' order by create_date desc";
 
+      endif;
+
+      // JIKA SEARCH ADA TAPI STRING KOSONG TAPI SUBMIT SEARCH ADA DAN TIDAK NULL MAKA NOTHING IS DISPLAYED
+      if (isset($_GET["search"]) && $_GET["search"] === '' && isset($_GET["submit"])) {
+
+        $sql = "select id from products where id = 0";
+
+      }
+
+      ?>
+
+
+      <!-- QUERY TO DATABASE -->
+      <?php
+
+        // QUERY FOR DISPLAYING PRODUCT
+
         $result = $conn->query($sql);
 
-        $index = 0;
-
-        // DISPLAY SEARCH RESULT
-        while ($products = $result->fetch_array(MYSQLI_ASSOC)) {
-
-          $index++;
-
-          echo "<tr>";
-          echo "<th class='row'>{$index}</th>";
-          echo "<td>{$products["title"]}</td>";
-          echo "<td class='description'>{$products["description"]}</td>";
-
-          if ($products["image"] !== "") {
-            echo "<td><img src='{$products["image"]}' width='100px'></td>";
-          } else {
-            echo "<td style='width='100px'; height='100px''></td>";
-          }
-
-          echo "<td>\${$products["price"]}</td>";
-          echo "<td>{$products["DATE_FORMAT(create_date, '%d/%m/%Y %H:%i:%S')"]}</td>";
-          echo "<td>";
-          echo "<a href='update.php?id={$products["id"]}' class='btn btn-outline-primary'>Edit</a>";
-          echo "<form action='delete.php' method='post' style='display: inline-block;'>";
-            echo "<input type='hidden' name='id' value='{$products["id"]}'>";
-            echo "<input type='submit' class='btn btn-outline-danger' style='margin-left: 5px;' value='Delete'>";
-          echo "</form>";
-          echo "</td>";
-          echo "</tr>";
-        }
-
-
-        // MENAMPILKAN JUMLAH DATA YANG DITEMUKAN
+        // QUERY UNTUK JUMLAH SEMUA DATA
 
         $sql = "select id from products";
 
-        $result = $conn -> query($sql) -> num_rows;
+        $rowCount = $conn->query($sql) -> num_rows;
 
-        $rowCount = strval($result);
+        // UNTUK JUMLAH DATA YANG DITAMPILKAN DAN NO
+        $no = 0;
 
-        echo "<p>";
-        echo "$index/$rowCount products ditampikan";
-        echo "</p>";
+        while ($products = $result->fetch_array(MYSQLI_ASSOC)):
 
-      }
-      
+          $no++;
 
+        ?>
 
-      // REFRESH PAGE
+          <tr>
+          <th class='row'><?php echo $no ?></th>
+          <td><?php echo $products["title"] ?></td>
+          <td class='description'><?php echo $products["description"] ?></td>
 
-      // if (isset($_GET["refresh"])) {
+        <!-- JIKA IMAGE ADA MAKA TAMPILKAN ELSE OUTPUT TABLE COLUMN KOSONG -->
+         <?php
+         
+         if ($products["image"] !== "") {
+            echo "<td><img src='{$products["image"]}' title='{$products["title"]}' width='100px'></td>";
+         } else {
+            echo "<td style='width=100px;' height='100px''></td>";
+         }
 
-      //   $current_url = $_SERVER["REQUEST_URI"];
-        
-      //   $current_url = explode('?', $current_url);
-      //   header("Location: " . $current_url[0]);
+        ?>
 
-      // }
+          <td>$<?php echo $products["price"] ?></td>
+          <td><?php echo $products["DATE_FORMAT(create_date, '%d/%m/%Y %H:%i:%S')"] ?></td>
+          <td>
+          <a href='update.php?id=<?php echo $products["id"] ?>' class='btn btn-outline-primary'>Edit</a>
+          <form action='delete.php' method='post' style='display: inline'>
+            <input type='hidden' name='id' value='{$products["id"]}'>
+            <input type='hidden' name='image_path' value='<?php $products["image"] ?>'>
+            <input type='submit' class='btn btn-outline-danger' style='margin-left: 5px;' value='Delete'>
+          </form>
+          </td>
+          </tr>
+
+       <?php endwhile; ?>
+
+        <!-- MENAMPILKAN JUMLAH PRODUCT YANG DITAMPILKAN -->
+        <p>
+          <?php echo "$no/$rowCount products ditampikan";?>
+        </p>
+
+      <?php
 
       // CLOSE CONNECTION
       $conn->close();
+
       ?>
 
     </tbody>
   </table>
 
   
+
   <script>
 
         // ACTIVATE and DISABLE SEARCH BUTTON
