@@ -14,6 +14,8 @@ CREATE TABLE `products` (
 );
 
 
+AND THEN
+
 CREATE DATABASE login_system;
 
 CREATE TABLE `users` (
