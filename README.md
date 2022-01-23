@@ -1,6 +1,8 @@
 First Of All
 
 
+THIS IS CRUD WITH LOGIN SYSTEM
+
 CREATE DATABASE products_crud;
 
 CREATE TABLE `products` (
