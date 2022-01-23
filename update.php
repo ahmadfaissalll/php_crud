@@ -1,6 +1,9 @@
 <?php
 
-require_once "conn.php";
+// CHECK SESSION
+require_once "checkSession.php";
+
+require_once "connProducts.php";
 
 $id = $_GET['id'] ?? null;
 
@@ -9,11 +12,11 @@ if (!$id) {
     exit;
 }
 
-$sql = "select * from products where id = $id";
+$sql = "SELECT * FROM products WHERE id = $id";
 
-$product = $conn -> query($sql);
+$result = $conn -> query($sql);
 
-$products = $product -> fetch_array(MYSQLI_ASSOC);
+$products = $result -> fetch_assoc();
 
 if ($products === null) {
     header("Location: index.php");
@@ -75,18 +78,30 @@ if (isset($_POST["submit"])) {
     }
 
 
-    $title = $_POST['title'];
+    $title = ctype_space(trim($_POST['title'])) ? false : trim($_POST['title']);
+
+    if (!$title) {
+        header("Location: update.php?id=$id");
+        exit;
+    }
+    
     $description = $_POST['description'];
     $imageUpdate = $imagePathToMove;
     $price = $_POST['price'];
 
 
-    $sql = "UPDATE products set image = '$imageUpdate', title = '$title', description = '$description', price = $price WHERE id = $id";
+    $sql = "UPDATE products SET image = '$imageUpdate', title = '$title', description = '$description', price = $price WHERE id = $id";
 
 
-    $url = "index.php";
     if ($conn->query($sql) === true) {
+
+
+        $_SESSION['newChanges'] = "$title berhasil diubah";
+
+        $url = "index.php";
+
         header('Location: ' . $url);
+        exit;
     }
 
 }
@@ -106,26 +121,26 @@ $conn->close();
     <title>Products CRUD</title>
     <link rel="stylesheet" href="app.css">
     <style>
-        .clear {
-            clear: both;
+        
+        .arrow-btn {
+            font-size: 30px;
         }
 
         #description {
             resize: none;
         }
 
-        ul {
-            float: right;
-            list-style: none;
-            margin-right: 250px;
+        .title-information {
+            color: red;
         }
+
     </style>
 </head>
 
 <body>
 
     <nav>
-        <a href="index.php" class="btn btn-lg btn-secondary">Home</a>
+        <a href="index.php" class="btn btn-secondary"><span class="arrow-btn">&#8592;</span></a>
     </nav>
 
     <h1>Update Product <strong><?php echo $products["title"] ?></strong></h1>
@@ -143,7 +158,7 @@ $conn->close();
         </div>
 
         <div class="form-group">
-            <label for="title">Product Title</label>
+            <label for="title">Product Title <span class='title-information'>(Jika anda hanya memasukkan spasi maka anda akan dikembalikan lagi kesini)</span></label>
             <input type="text" name="title" id="title" class="form-control" value="<?php echo $products['title'] ?>" required>
         </div>
 
@@ -162,6 +177,30 @@ $conn->close();
 
         <button type="submit" name="submit" value="submit" class="btn btn-primary">Submit</button>
     </form>
+
+    <script>
+
+        // TURN OFF SPELLCHECK OF ALL INPUT FIELD
+        // THERE ARE TWO DIFFERENT WAYS TO DO THAT
+
+        let allInputField = document.getElementsByTagName("input");
+        let textAreaField = document.getElementsByTagName("textarea");
+
+        // for (let i = 0; i < allInputField.length; i++) {
+        //     allInputField[i].spellcheck = false;
+        // }
+
+        for (let x in allInputField) {
+            allInputField[x].spellcheck = false;
+        }
+
+        for (x in textAreaField) {
+            textAreaField[x].spellcheck = false;
+        }
+
+        // END OF TURN OFF SPELLCHECK OF ALL INPUT FIELD
+
+    </script>
 
 </body>
 
